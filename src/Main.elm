@@ -1,8 +1,10 @@
+module Main exposing (Model, Msg(..), init, main, subscriptions, update, view)
+
 import Browser
 import File exposing (File)
 import File.Select as Select
-import Html exposing (Html, button, p, text)
-import Html.Attributes exposing (style)
+import Html exposing (Html, button, img, text)
+import Html.Attributes exposing (src)
 import Html.Events exposing (onClick)
 import Task
 
@@ -13,12 +15,12 @@ import Task
 
 main : Program () Model Msg
 main =
-  Browser.element
-    { init = init
-    , view = view
-    , update = update
-    , subscriptions = subscriptions
-    }
+    Browser.element
+        { init = init
+        , view = view
+        , update = update
+        , subscriptions = subscriptions
+        }
 
 
 
@@ -26,13 +28,13 @@ main =
 
 
 type alias Model =
-  { csv : Maybe String
-  }
+    { img : Maybe String
+    }
 
 
-init : () -> (Model, Cmd Msg)
+init : () -> ( Model, Cmd Msg )
 init _ =
-  ( Model Nothing, Cmd.none )
+    ( Model Nothing, Cmd.none )
 
 
 
@@ -40,28 +42,28 @@ init _ =
 
 
 type Msg
-  = CsvRequested
-  | CsvSelected File
-  | CsvLoaded String
+    = ImageRequested
+    | ImageSelected File
+    | ImageLoaded String
 
 
-update : Msg -> Model -> (Model, Cmd Msg)
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-  case msg of
-    CsvRequested ->
-      ( model
-      , Select.file ["text/csv"] CsvSelected
-      )
+    case msg of
+        ImageRequested ->
+            ( model
+            , Select.file [ "image/jpeg", "image/png" ] ImageSelected
+            )
 
-    CsvSelected file ->
-      ( model
-      , Task.perform CsvLoaded (File.toString file)
-      )
+        ImageSelected file ->
+            ( model
+            , Task.perform ImageLoaded (File.toUrl file)
+            )
 
-    CsvLoaded content ->
-      ( { model | csv = Just content }
-      , Cmd.none
-      )
+        ImageLoaded content ->
+            ( { model | img = Just content }
+            , Cmd.none
+            )
 
 
 
@@ -70,12 +72,12 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-  case model.csv of
-    Nothing ->
-      button [ onClick CsvRequested ] [ text "Load CSV" ]
+    case model.img of
+        Nothing ->
+            button [ onClick ImageRequested ] [ text "Load Image" ]
 
-    Just content ->
-      p [ style "white-space" "pre" ] [ text content ]
+        Just content ->
+            img [ src content ] []
 
 
 
@@ -84,4 +86,4 @@ view model =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-  Sub.none
+    Sub.none
