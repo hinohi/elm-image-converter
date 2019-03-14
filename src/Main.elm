@@ -3,9 +3,10 @@ module Main exposing (Model, Msg(..), init, main, subscriptions, update, view)
 import Browser
 import File exposing (File)
 import File.Select as Select
-import Html exposing (Html, button, img, text)
-import Html.Attributes exposing (src)
+import Html exposing (Html, button, div, img, text)
+import Html.Attributes as Attributes
 import Html.Events exposing (onClick)
+import Slider
 import Task
 
 
@@ -29,12 +30,17 @@ main =
 
 type alias Model =
     { img : Maybe String
+    , imgWidth : Slider.Model
     }
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Model Nothing, Cmd.none )
+    ( { img = Nothing
+      , imgWidth = Slider.Model 100 10 800 1
+      }
+    , Cmd.none
+    )
 
 
 
@@ -45,6 +51,7 @@ type Msg
     = ImageRequested
     | ImageSelected File
     | ImageLoaded String
+    | SliderMsg Slider.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -65,6 +72,11 @@ update msg model =
             , Cmd.none
             )
 
+        SliderMsg slider_msg ->
+            ( { model | imgWidth = Slider.update slider_msg model.imgWidth }
+            , Cmd.none
+            )
+
 
 
 -- VIEW
@@ -74,10 +86,17 @@ view : Model -> Html Msg
 view model =
     case model.img of
         Nothing ->
-            button [ onClick ImageRequested ] [ text "Load Image" ]
+            div []
+                [ button [ onClick ImageRequested ] [ text "Load Image" ]
+                , Html.map SliderMsg (Slider.view model.imgWidth)
+                ]
 
         Just content ->
-            img [ src content ] []
+            div []
+                [ img [ Attributes.src content, Attributes.width (round model.imgWidth.value) ] []
+                , button [ onClick ImageRequested ] [ text "Change Image" ]
+                , Html.map SliderMsg (Slider.view model.imgWidth)
+                ]
 
 
 
