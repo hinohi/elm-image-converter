@@ -1,0 +1,11 @@
+### Elm ###
+elm-stuff
+repl-temp-*
+
+### Emacs ###
+*~
+\#*\#
+.\#*
+
+### JetBrains ###
+.idea
