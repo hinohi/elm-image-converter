@@ -87,15 +87,21 @@ view model =
     case model.img of
         Nothing ->
             div []
-                [ button [ onClick ImageRequested ] [ text "Load Image" ]
-                , Html.map SliderMsg (Slider.view model.imgWidth)
+                [ div []
+                    [ button [ onClick ImageRequested ] [ text "Load Image" ]
+                    , Html.map SliderMsg (Slider.view model.imgWidth)
+                    ]
                 ]
 
         Just content ->
             div []
-                [ img [ Attributes.src content, Attributes.width (round model.imgWidth.value) ] []
-                , button [ onClick ImageRequested ] [ text "Change Image" ]
-                , Html.map SliderMsg (Slider.view model.imgWidth)
+                [ div []
+                    [ button [ onClick ImageRequested ] [ text "Change Image" ]
+                    , Html.map SliderMsg (Slider.view model.imgWidth)
+                    ]
+                , div []
+                    [ img [ Attributes.src content, Attributes.width (round model.imgWidth.value) ] []
+                    ]
                 ]
 
 

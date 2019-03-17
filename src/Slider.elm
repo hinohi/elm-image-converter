@@ -3,7 +3,6 @@ module Slider exposing (Model, Msg, update, view)
 import Html exposing (Html)
 import Html.Attributes as Attr
 import Html.Events as Events
-import Json.Decode as Decode
 
 
 type alias Model =
@@ -15,14 +14,19 @@ type alias Model =
 
 
 type Msg
-    = ChangeValue Float
+    = ChangeValue String
 
 
 update : Msg -> Model -> Model
 update msg slider =
     case msg of
-        ChangeValue value ->
-            { slider | value = value }
+        ChangeValue s ->
+            case String.toFloat s of
+                Just value ->
+                    { slider | value = value }
+
+                Nothing ->
+                    slider
 
 
 view : Model -> Html Msg
@@ -32,6 +36,6 @@ view model =
         , Attr.min (model.minValue |> String.fromFloat)
         , Attr.max (model.maxValue |> String.fromFloat)
         , Attr.step (model.step |> String.fromFloat)
-        , Events.on "change" (Decode.map ChangeValue Decode.float)
+        , Events.onInput ChangeValue
         ]
         []
