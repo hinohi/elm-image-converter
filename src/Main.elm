@@ -3,8 +3,8 @@ module Main exposing (Model, Msg(..), init, main, subscriptions, update, view)
 import Browser
 import File exposing (File)
 import File.Select as Select
-import Html exposing (Html, button, div, img, text)
-import Html.Attributes as Attributes
+import Html exposing (Html)
+import Html.Attributes as Attr
 import Html.Events exposing (onClick)
 import Slider
 import Task
@@ -30,14 +30,14 @@ main =
 
 type alias Model =
     { img : Maybe String
-    , imgWidth : Slider.Model
+    , widthSlider : Slider.Model
     }
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( { img = Nothing
-      , imgWidth = Slider.Model 100 10 800 1
+      , widthSlider = Slider.Model 100 10 800 1
       }
     , Cmd.none
     )
@@ -73,7 +73,7 @@ update msg model =
             )
 
         SliderMsg slider_msg ->
-            ( { model | imgWidth = Slider.update slider_msg model.imgWidth }
+            ( { model | widthSlider = Slider.update slider_msg model.widthSlider }
             , Cmd.none
             )
 
@@ -86,23 +86,34 @@ view : Model -> Html Msg
 view model =
     case model.img of
         Nothing ->
-            div []
-                [ div []
-                    [ button [ onClick ImageRequested ] [ text "Load Image" ]
-                    , Html.map SliderMsg (Slider.view model.imgWidth)
-                    ]
+            Html.div []
+                [ viewImageLoadButton
+                , viewSlider "width" model.widthSlider
                 ]
 
         Just content ->
-            div []
-                [ div []
-                    [ button [ onClick ImageRequested ] [ text "Change Image" ]
-                    , Html.map SliderMsg (Slider.view model.imgWidth)
-                    ]
-                , div []
-                    [ img [ Attributes.src content, Attributes.width (round model.imgWidth.value) ] []
+            Html.div []
+                [ viewImageLoadButton
+                , viewSlider "width" model.widthSlider
+                , Html.div []
+                    [ Html.img [ Attr.src content, Attr.width (round model.widthSlider.value) ] []
                     ]
                 ]
+
+
+viewImageLoadButton : Html Msg
+viewImageLoadButton =
+    Html.div []
+        [ Html.button [ onClick ImageRequested ] [ Html.text "Load Image" ] ]
+
+
+viewSlider : String -> Slider.Model -> Html Msg
+viewSlider name model =
+    Html.div []
+        [ Html.text name
+        , Html.map SliderMsg (Slider.view [ Attr.name name ] model)
+        , Html.text (model.value |> String.fromFloat)
+        ]
 
 
 

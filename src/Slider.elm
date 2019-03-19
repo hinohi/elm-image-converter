@@ -29,13 +29,15 @@ update msg slider =
                     slider
 
 
-view : Model -> Html Msg
-view model =
+view : List (Html.Attribute Msg) -> Model -> Html Msg
+view attr model =
     Html.input
-        [ Attr.type_ "range"
-        , Attr.min (model.minValue |> String.fromFloat)
-        , Attr.max (model.maxValue |> String.fromFloat)
-        , Attr.step (model.step |> String.fromFloat)
-        , Events.onInput ChangeValue
-        ]
+        ([ Attr.type_ "range"
+         , Attr.min (model.minValue |> String.fromFloat)
+         , Attr.max (model.maxValue |> String.fromFloat)
+         , Attr.step (model.step |> String.fromFloat)
+         , Events.onInput ChangeValue
+         ]
+            ++ attr
+        )
         []
