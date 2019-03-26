@@ -8,7 +8,7 @@ import Html.Attributes as Attr
 import Html.Events exposing (onClick)
 import Slider
 import Task
-
+import Http
 
 
 -- MAIN
@@ -29,14 +29,16 @@ main =
 
 
 type alias Model =
-    { img : Maybe String
+    { img_file : Maybe File
+    , img_url : Maybe String
     , widthSlider : Slider.Model
     }
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { img = Nothing
+    ( { img_file = Nothing
+      , img_url = Nothing
       , widthSlider = Slider.Model 100 10 800 1
       }
     , Cmd.none
@@ -52,6 +54,7 @@ type Msg
     | ImageSelected File
     | ImageLoaded String
     | SliderMsg Slider.Msg
+    | Submit
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -63,12 +66,12 @@ update msg model =
             )
 
         ImageSelected file ->
-            ( model
+            ( { model | img_file = Just file }
             , Task.perform ImageLoaded (File.toUrl file)
             )
 
         ImageLoaded content ->
-            ( { model | img = Just content }
+            ( { model | img_url = Just content }
             , Cmd.none
             )
 
@@ -77,14 +80,15 @@ update msg model =
             , Cmd.none
             )
 
-
+        Submit ->
+            (model, )
 
 -- VIEW
 
 
 view : Model -> Html Msg
 view model =
-    case model.img of
+    case model.img_url of
         Nothing ->
             Html.div []
                 [ viewImageLoadButton
@@ -105,6 +109,12 @@ viewImageLoadButton : Html Msg
 viewImageLoadButton =
     Html.div []
         [ Html.button [ onClick ImageRequested ] [ Html.text "Load Image" ] ]
+
+
+viewSubmitButton : Html Msg
+viewSubmitButton =
+    Html.div []
+        [ Html.button [ onClick Submit ] [ Html.text "convert" ] ]
 
 
 viewSlider : String -> Slider.Model -> Html Msg
