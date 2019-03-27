@@ -42,7 +42,9 @@ type alias Model =
     { img_file : Maybe File
     , img_url : Maybe String
     , widthSlider : SliderModel
-    , aSlider : SliderModel
+    , hueSlider : SliderModel
+    , luminanceSlider : SliderModel
+    , saturationSlider : SliderModel
     }
 
 
@@ -51,7 +53,9 @@ init _ =
     ( { img_file = Nothing
       , img_url = Nothing
       , widthSlider = SliderModel 100 10 800 1 "width"
-      , aSlider = SliderModel 0.5 0.0 1.0 0.01 "a"
+      , hueSlider = SliderModel 0.5 0.0 1.0 0.01 "H"
+      , luminanceSlider = SliderModel 0.5 0.0 1.0 0.01 "L"
+      , saturationSlider = SliderModel 0.5 0.0 1.0 0.01 "S"
       }
     , Cmd.none
     )
@@ -66,7 +70,9 @@ type Msg
     | ImageSelected File
     | ImageLoaded String
     | WidthSliderChange Float
-    | ASliderChange Float
+    | HSliderChange Float
+    | LSliderChange Float
+    | SSliderChange Float
 
 
 updateSlider : Float -> SliderModel -> SliderModel
@@ -97,8 +103,18 @@ update msg model =
             , Cmd.none
             )
 
-        ASliderChange value ->
-            ( { model | aSlider = updateSlider value model.aSlider }
+        HSliderChange value ->
+            ( { model | hueSlider = updateSlider value model.hueSlider }
+            , Cmd.none
+            )
+
+        LSliderChange value ->
+            ( { model | luminanceSlider = updateSlider value model.luminanceSlider }
+            , Cmd.none
+            )
+
+        SSliderChange value ->
+            ( { model | saturationSlider = updateSlider value model.saturationSlider }
             , Cmd.none
             )
 
@@ -116,14 +132,18 @@ view model =
                     Element.column [ Element.padding 10 ]
                         [ viewImageLoadButton
                         , viewSlider WidthSliderChange model.widthSlider
-                        , viewSlider ASliderChange model.aSlider
+                        , viewSlider HSliderChange model.hueSlider
+                        , viewSlider LSliderChange model.luminanceSlider
+                        , viewSlider SSliderChange model.saturationSlider
                         ]
 
                 Just content ->
                     Element.column [ Element.padding 10 ]
                         [ viewImageLoadButton
                         , viewSlider WidthSliderChange model.widthSlider
-                        , viewSlider ASliderChange model.aSlider
+                        , viewSlider HSliderChange model.hueSlider
+                        , viewSlider LSliderChange model.luminanceSlider
+                        , viewSlider SSliderChange model.saturationSlider
                         , Element.image
                             [ Element.width (model.widthSlider.value |> round |> Element.px) ]
                             { src = content, description = "画像" }
