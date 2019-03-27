@@ -8,7 +8,9 @@ import Element.Input as Input
 import File exposing (File)
 import File.Select as Select
 import Html exposing (Html)
+import Http
 import Task
+import Url.Builder
 
 
 
@@ -41,6 +43,7 @@ type alias SliderModel =
 type alias Model =
     { img_file : Maybe File
     , img_url : Maybe String
+    , submitable : Bool
     , widthSlider : SliderModel
     , hueSlider : SliderModel
     , luminanceSlider : SliderModel
@@ -52,9 +55,10 @@ init : () -> ( Model, Cmd Msg )
 init _ =
     ( { img_file = Nothing
       , img_url = Nothing
+      , submitable = True
       , widthSlider = SliderModel 100 10 800 1 "width"
       , hueSlider = SliderModel 0.5 0.0 1.0 0.01 "H"
-      , luminanceSlider = SliderModel 0.5 0.0 1.0 0.01 "L"
+      , luminanceSlider = SliderModel 0.5 0.0 10.0 0.01 "L"
       , saturationSlider = SliderModel 0.5 0.0 1.0 0.01 "S"
       }
     , Cmd.none
@@ -73,6 +77,8 @@ type Msg
     | HSliderChange Float
     | LSliderChange Float
     | SSliderChange Float
+    | Submit
+    | Converted String
 
 
 updateSlider : Float -> SliderModel -> SliderModel
@@ -118,6 +124,31 @@ update msg model =
             , Cmd.none
             )
 
+        Submit ->
+            let
+                url =
+                    Url.Builder.relative [ "api", "hls" ] []
+
+                body =
+                    Http.multipartBody
+                        [ Http.stringPart "width" (model.widthSlider.value |> String.fromFloat)
+                        , Http.stringPart "H" (model.hueSlider.value |> String.fromFloat)
+                        , Http.stringPart "L" (model.luminanceSlider.value |> String.fromFloat)
+                        , Http.stringPart "S" (model.saturationSlider.value |> String.fromFloat)
+                        , Http.filePart "image" model.img_file
+                        ]
+
+                req =
+                    Http.post
+                        { url = url
+                        , body = body
+                        , expect = Http.expectString Converted
+                        }
+            in
+            ( { model | submitable = False }
+            , req
+            )
+
 
 
 -- VIEW
@@ -147,6 +178,7 @@ view model =
                         , Element.image
                             [ Element.width (model.widthSlider.value |> round |> Element.px) ]
                             { src = content, description = "画像" }
+                        , viewSubmit model.submitable
                         ]
     in
     layout [] body
@@ -183,6 +215,15 @@ viewSlider onChange model =
             }
         , Element.text (String.fromFloat model.value)
         ]
+
+
+viewSubmit : Bool -> Element Msg
+viewSubmit active =
+    if active then
+        Input.button [] { onPress = Just Submit, label = Element.text "submit" }
+
+    else
+        Input.button [] { onPress = Just Nothing, label = Element.text "submit" }
 
 
 
