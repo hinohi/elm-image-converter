@@ -78,7 +78,7 @@ type Msg
     | LSliderChange Float
     | SSliderChange Float
     | Submit
-    | Converted String
+    | Converted (Result Http.Error String)
 
 
 updateSlider : Float -> SliderModel -> SliderModel
@@ -126,28 +126,31 @@ update msg model =
 
         Submit ->
             let
-                url =
-                    Url.Builder.relative [ "api", "hls" ] []
-
-                body =
-                    Http.multipartBody
-                        [ Http.stringPart "width" (model.widthSlider.value |> String.fromFloat)
-                        , Http.stringPart "H" (model.hueSlider.value |> String.fromFloat)
-                        , Http.stringPart "L" (model.luminanceSlider.value |> String.fromFloat)
-                        , Http.stringPart "S" (model.saturationSlider.value |> String.fromFloat)
-                        , Http.filePart "image" model.img_file
-                        ]
-
                 req =
-                    Http.post
-                        { url = url
-                        , body = body
-                        , expect = Http.expectString Converted
-                        }
+                    case model.img_file of
+                        Just file ->
+                            Http.post
+                                { url = Url.Builder.relative [ "api", "hls" ] []
+                                , body =
+                                    Http.multipartBody
+                                        [ Http.stringPart "width" (model.widthSlider.value |> String.fromFloat)
+                                        , Http.stringPart "H" (model.hueSlider.value |> String.fromFloat)
+                                        , Http.stringPart "L" (model.luminanceSlider.value |> String.fromFloat)
+                                        , Http.stringPart "S" (model.saturationSlider.value |> String.fromFloat)
+                                        , Http.filePart "image" file
+                                        ]
+                                , expect = Http.expectString Converted
+                                }
+
+                        Nothing ->
+                            Cmd.none
             in
             ( { model | submitable = False }
             , req
             )
+
+        Converted _ ->
+            ( model, Cmd.none )
 
 
 
@@ -186,7 +189,7 @@ view model =
 
 viewImageLoadButton : Element Msg
 viewImageLoadButton =
-    Input.button [] { onPress = Just ImageRequested, label = Element.text "load image" }
+    Input.button [ Background.color (Element.rgb255 120 120 120) ] { onPress = Just ImageRequested, label = Element.text "load image" }
 
 
 viewSlider : (Float -> Msg) -> SliderModel -> Element Msg
@@ -223,7 +226,7 @@ viewSubmit active =
         Input.button [] { onPress = Just Submit, label = Element.text "submit" }
 
     else
-        Input.button [] { onPress = Just Nothing, label = Element.text "submit" }
+        Input.button [] { onPress = Nothing, label = Element.text "submit" }
 
 
 
